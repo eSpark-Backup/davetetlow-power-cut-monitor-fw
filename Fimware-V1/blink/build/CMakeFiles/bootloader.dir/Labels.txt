@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/CMakeFiles/bootloader
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/CMakeFiles/bootloader.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/CMakeFiles/bootloader-complete.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

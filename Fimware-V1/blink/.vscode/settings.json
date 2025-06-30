@@ -1,0 +1,11 @@
+{
+  "C_Cpp.intelliSenseEngine": "default",
+  "idf.espIdfPathWin": "C:\\Users\\saad\\esp\\esp-idf",
+  "idf.toolsPathWin": "C:\\Users\\saad\\.espressif",
+  "idf.pythonInstallPath": "C:\\Users\\saad\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.flashType": "UART",
+  "files.associations": {
+    "led_strip.h": "c",
+    "esp_log.h": "c"
+  }
+}
