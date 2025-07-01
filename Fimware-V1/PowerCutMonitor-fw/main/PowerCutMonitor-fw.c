@@ -22,6 +22,7 @@ void app_main(void)
     ESP_LOGI(TAG, "GPIO level: %d", level);
     
     if(level == 1){
+       ESP_LOGI(TAG, "GPIO is HIGH, Enter sleep mode...");
        esp_deep_sleep_enable_gpio_wakeup(POWER_GPIO, 1); 
        vTaskDelay(pdMS_TO_TICKS(100));
        esp_deep_sleep_start();
