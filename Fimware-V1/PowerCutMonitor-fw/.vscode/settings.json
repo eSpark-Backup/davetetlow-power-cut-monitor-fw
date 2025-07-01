@@ -1,0 +1,17 @@
+{
+  "idf.flashType": "UART",
+  "idf.portWin": "COM4",
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32c3"
+  },
+  "clangd.path": "c:\\Users\\eSpark\\.espressif\\tools\\esp-clang\\esp-18.1.2_20240912\\esp-clang\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=c:\\Users\\eSpark\\.espressif\\tools\\riscv32-esp-elf\\esp-14.2.0_20241119\\riscv32-esp-elf\\bin\\riscv32-esp-elf-gcc.exe",
+    "--compile-commands-dir=c:\\Users\\eSpark\\Documents\\GitHub\\davetetlow-PowerCutMonitor-fw\\Fimware-V1\\PowerCutMonitor-fw\\build"
+  ],
+  "files.associations": {
+    "esp_sleep.h": "c",
+    "freertos.h": "c"
+  }
+}

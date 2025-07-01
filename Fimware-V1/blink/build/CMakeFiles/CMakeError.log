@@ -1,9 +1,0 @@
-Performing C SOURCE FILE Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS failed with the following output:
-Change Dir: D:/github/davetetlow-PowerCutMonitor-fw/Fimware-V1/blink/build/CMakeFiles/CMakeTmp
-
-Run Build Command(s):C:/Users/saad/.espressif/tools/ninja/1.10.2/ninja.exe cmTC_7aa96 && ninja: error: loading 'build.ninja': The system cannot find the file specified.
-
-
-
-Source file was:
-int main(void) { return 0; }
