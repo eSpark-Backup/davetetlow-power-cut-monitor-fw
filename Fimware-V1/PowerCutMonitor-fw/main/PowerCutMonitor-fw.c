@@ -5,7 +5,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/adc.h"
-// #include "esp_adc_cal.h"
 
 #define POWER_GPIO 5
 #define BATT_GPIO 4
@@ -14,7 +13,7 @@
 #define EXAMPLE_ADC_ATTEN ADC_ATTEN_DB_6      // ADC_ATTEN_DB_11 // Attenuation for higher voltage range
 #define EXAMPLE_ADC_BIT_WIDTH ADC_WIDTH_BIT_12 // 12-bit resolution
 #define NUM_SAMPLES 150 
-#define WAKE_INTERVAL_SEC 10             //1800000000// wake up timer of 10 sec
+#define WAKE_INTERVAL_SEC 1800000000           // wake up timer of 10 sec
 
 
 int capacitySamples[NUM_SAMPLES];
