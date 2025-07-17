@@ -4,7 +4,12 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Users/eSpark/esp/**"
+                "C:/Users/eSpark/esp/**",
+                "C:/Users/eSpark/esp/v5.4.2/esp-idf/components/linux/include",
+                "C:/Users/eSpark/esp/v5.4.2/esp-idf/components/mqtt/esp-mqtt/host_test/mocks/include",
+                "C:/msys64/mingw64/include",
+                "C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/12.2.0/include",
+                "C:/Users/eSpark/esp/v5.4.2/esp-idf/components/mqtt/esp-mqtt/host_test/mocks/include"
             ],
             "defines": [
                 "_DEBUG",

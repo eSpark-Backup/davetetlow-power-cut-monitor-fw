@@ -13,6 +13,8 @@ char *create_json_data(bool power_cut, float voltages, uint16_t adc_value)
     else
         low_battery = false;
 
+    esp_read_mac(DEVICE_MAC_ID, ESP_MAC_WIFI_STA);
+
     char mac_str[24]; // ESP_34:CD:B0:85:8C:AC
     snprintf(mac_str, sizeof(mac_str), "ESP_%02X:%02X:%02X:%02X:%02X:%02X",
              DEVICE_MAC_ID[0], DEVICE_MAC_ID[1], DEVICE_MAC_ID[2], DEVICE_MAC_ID[3], DEVICE_MAC_ID[4], DEVICE_MAC_ID[5]);
@@ -23,40 +25,6 @@ char *create_json_data(bool power_cut, float voltages, uint16_t adc_value)
              mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false", adc_value, voltages, ((voltages - 1.8) / (3.0 - 1.8)) * 100);
     ESP_LOGI(TAG, "%s", json_data);
     return json_data;
-}
-
-esp_err_t wifi_connect()
-{
-
-    esp_err_t ret = nvs_flash_init();
-
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    esp_netif_create_default_wifi_sta();
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-
-    wifi_config_t wifi_sta_config = {
-        .sta = {
-            .ssid = SSID,
-            .password = PASSWORD,
-            .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-        },
-    };
-
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config));
-
-    ESP_ERROR_CHECK(esp_wifi_start());
-
-    ESP_ERROR_CHECK(esp_wifi_connect());
-
-    esp_read_mac(DEVICE_MAC_ID, ESP_MAC_WIFI_STA);
-
-    return ESP_OK;
 }
 
 esp_err_t send_report_to_server(char *json_data)

@@ -9,8 +9,6 @@
 #include <esp_http_client.h>
 
 extern uint8_t DEVICE_MAC_ID[6];
-#define SSID "eSpark Wifi"
-#define PASSWORD "47356880"
 
 #define FLASK_SERVER_URL "http://192.168.18.21:5000/data"
 
