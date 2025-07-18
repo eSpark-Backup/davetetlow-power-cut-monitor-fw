@@ -1,4 +1,8 @@
 #include "wifi_provisioning.h"
+#include "nvs_store_retrieve.h"
+#include "cloud_handling.h"
+
+#include <freertos/event_groups.h>
 
 char *TAG = "BLE-Server";
 uint8_t ble_addr_type;
@@ -17,50 +21,99 @@ static int prepare_len = 0;
 
 volatile bool wifi_connected = false;
 
+#define WIFI_CONNECTED_BIT BIT0
+
+static EventGroupHandle_t wifi_event_group;
+static bool stop_reconnect = false;
+
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+    {
+        ESP_LOGI("WIFI", "Connecting to Wi-Fi...");
         esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        wifi_connected = false;
-        ESP_LOGI("WIFI", "Disconnected. Retrying...");
-        esp_wifi_connect();
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+    }
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+        if (!stop_reconnect)
+        {
+            ESP_LOGW("WIFI", "Disconnected. Reconnecting...");
+            esp_wifi_connect(); // auto-reconnect
+        }
+    }
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
+    {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
         wifi_connected = true;
     }
 }
 
 esp_err_t wifi_connect(const char *ssid, const char *password)
 {
+    wifi_event_group = xEventGroupCreate();
 
-     ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(esp_netif_init());
 
-        esp_netif_create_default_wifi_sta(); 
+    static bool event_loop_created = false;
+    if (!event_loop_created)
+    {
+        esp_err_t err = esp_event_loop_create_default();
+        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE)
+        {
+            ESP_LOGE(TAG, "Failed to create default event loop: %s", esp_err_to_name(err));
+            return err;
+        }
+        event_loop_created = true;
+    }
 
-    wifi_init_config_t cfgg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfgg));
+    static esp_netif_t *sta_netif = NULL;
+    if (sta_netif == NULL)
+    {
+        sta_netif = esp_netif_create_default_wifi_sta();
+    }
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
+    // esp_netif_create_default_wifi_sta();
 
-    wifi_config_t wifi_configg = {};
-    strcpy((char *)wifi_configg.sta.ssid, ssid);
-    strcpy((char *)wifi_configg.sta.password, password);
-    wifi_configg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_configg));
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+
+    wifi_config_t wifi_config = {};
+    strcpy((char *)wifi_config.sta.ssid, ssid);
+    strcpy((char *)wifi_config.sta.password, password);
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    printf("wifi WiFi Initialized\n");
+    ESP_LOGI("WIFI", "Connecting to %s...", ssid);
 
-    ESP_ERROR_CHECK(esp_wifi_connect());
-    wifi_connected = true;
-    printf("wifi WiFi Connect Called\n");
+    // Wait until connected (timeout 10 seconds)
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT,
+                                           pdFALSE, pdTRUE, pdMS_TO_TICKS(10000));
 
-    return ESP_OK;
+    if (bits & WIFI_CONNECTED_BIT)
+    {
+        ESP_LOGI("WIFI", "Connected successfully.");
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE("WIFI", "Failed to connect to Wi-Fi within timeout.");
+        stop_reconnect = true;
+        esp_wifi_disconnect();
+        esp_wifi_stop();
+        vEventGroupDelete(wifi_event_group);
+        esp_wifi_deinit();
+        return ESP_FAIL;
+    }
 }
 
 void parse_json(const char *json_str)
@@ -77,9 +130,38 @@ void parse_json(const char *json_str)
 
     if (cJSON_IsString(ssid) && cJSON_IsString(password))
     {
-        printf(" SSID: %s\n", ssid->valuestring);
-        printf(" Password: %s\n", password->valuestring);
-        wifi_connect(ssid->valuestring, password->valuestring);
+        ESP_LOGI("WIFI_CRED", " SSID: %s\n", ssid->valuestring);
+        ESP_LOGI("WIFI_CRED", " Password: %s\n", password->valuestring);
+
+        if (wifi_connect(ssid->valuestring, password->valuestring) == ESP_OK)
+        {
+            ESP_LOGI("WIFI", "Wifi Connected****************");
+            char *json_data;
+            json_data = create_json_data_2();
+            ESP_LOGI("JSON", "%s", json_data);
+            send_report_to_server(json_data);
+
+            if (nvs_write_string("wifi_creds", "ssid", ssid->valuestring) == ESP_OK)
+            {
+                ESP_LOGI(TAG, "Successfully write string to NVS");
+            }
+            else
+            {
+                ESP_LOGE(TAG, "Failed to write string to NVS");
+            }
+            if (nvs_write_string("wifi_creds", "pass", password->valuestring) == ESP_OK)
+            {
+                ESP_LOGI(TAG, "Successfully write string to NVS");
+            }
+            else
+            {
+                ESP_LOGE(TAG, "Failed to write string to NVS");
+            }
+        }
+        else
+        {
+            ESP_LOGW("WIFI", "Wifi Not Connected****************");
+        }
     }
     else
     {
@@ -88,6 +170,7 @@ void parse_json(const char *json_str)
 
     cJSON_Delete(root);
 }
+// }
 
 int device_write(uint16_t conn_handle, uint16_t attr_handle,
                  struct ble_gatt_access_ctxt *ctxt, void *arg)
@@ -113,6 +196,7 @@ int device_write(uint16_t conn_handle, uint16_t attr_handle,
 
         printf(" Final Write Received (%d bytes): %s\n", prepare_len, prepare_buf);
 
+        stop_reconnect = false;
         parse_json(prepare_buf);
 
         break;
@@ -137,9 +221,9 @@ const struct ble_gatt_svc_def gatt_svcs[] = {
     {.type = BLE_GATT_SVC_TYPE_PRIMARY,
      .uuid = BLE_UUID16_DECLARE(0x180), // Define UUID for device type
      .characteristics = (struct ble_gatt_chr_def[]){
-        //  {.uuid = BLE_UUID16_DECLARE(0xFEF4), // Define UUID for reading
-        //   .flags = BLE_GATT_CHR_F_READ,
-        //   .access_cb = device_read},
+         //  {.uuid = BLE_UUID16_DECLARE(0xFEF4), // Define UUID for reading
+         //   .flags = BLE_GATT_CHR_F_READ,
+         //   .access_cb = device_read},
          {.uuid = BLE_UUID16_DECLARE(0xCDAD), // Define UUID for writing
           .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
           .access_cb = device_write},
@@ -162,6 +246,7 @@ int ble_gap_event(struct ble_gap_event *event, void *arg)
     // Advertise again after completion of the event
     case BLE_GAP_EVENT_DISCONNECT:
         ESP_LOGI("GAP", "BLE GAP EVENT DISCONNECTED");
+        ble_app_advertise();
         break;
     case BLE_GAP_EVENT_ADV_COMPLETE:
         ESP_LOGI("GAP", "BLE GAP EVENT");

@@ -1,9 +1,9 @@
 #include "cloud_handling.h"
 
-static const char *TAG = "Cloud Handling";
+static const char *TAG = "Cloud_Handling";
 
 uint8_t DEVICE_MAC_ID[6];
-char *create_json_data(bool power_cut, float voltages, uint16_t adc_value)
+char *create_json_data_1(bool power_cut, float voltages)
 {
     bool low_battery;
     static char json_data[256];
@@ -20,10 +20,29 @@ char *create_json_data(bool power_cut, float voltages, uint16_t adc_value)
              DEVICE_MAC_ID[0], DEVICE_MAC_ID[1], DEVICE_MAC_ID[2], DEVICE_MAC_ID[3], DEVICE_MAC_ID[4], DEVICE_MAC_ID[5]);
 
     // create json
+
+    // snprintf(json_data, sizeof(json_data),
+    //          "{\"device_id\":\"%s\", \"cutoff_detection\":%s, \"low_battery_indication\":%s, \"ADC Value\":%d , \"Voltages\":%.2f, \"Battery Percentage\":%.0f}",
+    //          mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false", adc_value, voltages, ((voltages - 1.8) / (3.0 - 1.8)) * 100);
+    // ESP_LOGI(TAG, "%s", json_data);
+
     snprintf(json_data, sizeof(json_data),
-             "{\"device_id\":\"%s\", \"cutoff_detection\":%s, \"low_battery_indication\":%s, \"ADC Value\":%d , \"Voltages\":%.2f, \"Battery Percentage\":%.0f}",
-             mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false", adc_value, voltages, ((voltages - 1.8) / (3.0 - 1.8)) * 100);
-    ESP_LOGI(TAG, "%s", json_data);
+             "{\"device_id\":\"%s\", \"cutoff_detection\":%s, \"low_battery_indication\":%s}",
+             mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false");
+
+    return json_data;
+}
+
+char *create_json_data_2()
+{
+    static char json_data[256];
+    static uint8_t base_mac[6];
+    char mac_address[24];
+    snprintf(mac_address, sizeof(mac_address), "ESP_%02X:%02X:%02X:%02X:%02X:%02X", base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+    ESP_LOGI("MAC", "%s", mac_address);
+
+    snprintf(json_data, sizeof(json_data),
+             "{\"device_id\":\"%s\", \"connection_status\":true}", mac_address);
     return json_data;
 }
 
