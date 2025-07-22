@@ -10,8 +10,8 @@
 
 extern uint8_t DEVICE_MAC_ID[6];
 
-#define FLASK_SERVER_URL "http://192.168.18.24:5000/data"
-// #define FLASK_SERVER_URL "http://localhost:5000/data"
+// #define SERVER_URL "http://192.168.18.24:5000/data"
+#define SERVER_URL "https://davetetlowbe.esparkconsultants.com/device-data"
 
 char *create_json_data_1(bool power_cut, float voltages);
 char *create_json_data_2();

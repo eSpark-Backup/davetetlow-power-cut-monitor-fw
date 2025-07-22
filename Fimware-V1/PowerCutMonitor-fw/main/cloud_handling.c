@@ -19,15 +19,8 @@ char *create_json_data_1(bool power_cut, float voltages)
     snprintf(mac_str, sizeof(mac_str), "ESP_%02X:%02X:%02X:%02X:%02X:%02X",
              DEVICE_MAC_ID[0], DEVICE_MAC_ID[1], DEVICE_MAC_ID[2], DEVICE_MAC_ID[3], DEVICE_MAC_ID[4], DEVICE_MAC_ID[5]);
 
-    // create json
-
-    // snprintf(json_data, sizeof(json_data),
-    //          "{\"device_id\":\"%s\", \"cutoff_detection\":%s, \"low_battery_indication\":%s, \"ADC Value\":%d , \"Voltages\":%.2f, \"Battery Percentage\":%.0f}",
-    //          mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false", adc_value, voltages, ((voltages - 1.8) / (3.0 - 1.8)) * 100);
-    // ESP_LOGI(TAG, "%s", json_data);
-
     snprintf(json_data, sizeof(json_data),
-             "{\"device_id\":\"%s\", \"cutoff_detection\":%s, \"low_battery_indication\":%s}",
+             "{\"device_id\":\"%s\", \"data\": {\"cutoff_detection\":%s, \"low_battery_indication\":%s}}",
              mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false");
 
     return json_data;
@@ -38,7 +31,8 @@ char *create_json_data_2()
     static char json_data[256];
     static uint8_t base_mac[6];
     char mac_address[24];
-    snprintf(mac_address, sizeof(mac_address), "ESP_%02X:%02X:%02X:%02X:%02X:%02X", base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+    esp_read_mac(DEVICE_MAC_ID, ESP_MAC_WIFI_STA);
+    snprintf(mac_address, sizeof(mac_address), "ESP_%02X:%02X:%02X:%02X:%02X:%02X", DEVICE_MAC_ID[0], DEVICE_MAC_ID[1], DEVICE_MAC_ID[2], DEVICE_MAC_ID[3], DEVICE_MAC_ID[4], DEVICE_MAC_ID[5]);
     ESP_LOGI("MAC", "%s", mac_address);
 
     snprintf(json_data, sizeof(json_data),
@@ -49,8 +43,9 @@ char *create_json_data_2()
 esp_err_t send_report_to_server(char *json_data)
 {
     esp_http_client_config_t config = {
-        .url = FLASK_SERVER_URL,
-        .method = HTTP_METHOD_POST};
+        .url = SERVER_URL,
+        .method = HTTP_METHOD_POST
+    };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
