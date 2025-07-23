@@ -13,6 +13,7 @@
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include "esp_wifi.h"
+#include "esp_system.h"
 // #include "sdkconfig.h"
 #include "cJSON.h"
 

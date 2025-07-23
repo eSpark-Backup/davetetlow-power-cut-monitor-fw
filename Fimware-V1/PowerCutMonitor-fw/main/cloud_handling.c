@@ -36,7 +36,7 @@ char *create_json_data_2()
     ESP_LOGI("MAC", "%s", mac_address);
 
     snprintf(json_data, sizeof(json_data),
-             "{\"device_id\":\"%s\", \"connection_status\":true}", mac_address);
+             "{\"device_id\":\"%s\", \"data\":{\"connection_status\":true}}", mac_address);
     return json_data;
 }
 

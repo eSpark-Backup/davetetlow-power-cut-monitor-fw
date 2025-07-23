@@ -53,7 +53,6 @@ void app_main(void)
     {
         ESP_LOGE(TAG, "Failed to read Wifi Credentials from NVS");
     }
-
     if (ssid != NULL && password != NULL)
     {
         if (wifi_connect(ssid, password) == ESP_OK)
@@ -71,7 +70,23 @@ void app_main(void)
 
         nimble_port_init();
 
-        ble_svc_gap_device_name_set("BLE-Server-Test");
+        static uint8_t base_mac[6];
+        esp_err_t ret = esp_base_mac_addr_get(base_mac);
+        if (ret == ESP_OK)
+        {
+            ESP_LOGI(TAG, "Base MAC Address: %02X:%02X:%02X:%02X:%02X:%02X",
+                     base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to read base MAC address");
+        }
+        char mac_address[24];
+        snprintf(mac_address, sizeof(mac_address), "ESP_%02X:%02X:%02X:%02X:%02X:%02X", base_mac[0], base_mac[1], base_mac[2], base_mac[3], base_mac[4], base_mac[5]);
+        ESP_LOGE("MAC", "%s", mac_address);
+
+        ble_svc_gap_device_name_set(mac_address);
+
         ble_svc_gap_init();
         ble_svc_gatt_init();
         ble_gatts_count_cfg(gatt_svcs);

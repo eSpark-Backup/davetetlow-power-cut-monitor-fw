@@ -136,10 +136,10 @@ void parse_json(const char *json_str)
         if (wifi_connect(ssid->valuestring, password->valuestring) == ESP_OK)
         {
             ESP_LOGI("WIFI", "Wifi Connected****************");
-            char *json_data;
-            json_data = create_json_data_2();
-            ESP_LOGI("JSON", "%s", json_data);
-            send_report_to_server(json_data);
+            // char *json_data;
+            // json_data = create_json_data_2();
+            // ESP_LOGI("JSON", "%s", json_data);
+            // send_report_to_server(json_data);
 
             if (nvs_write_string("wifi_creds", "ssid", ssid->valuestring) == ESP_OK)
             {
@@ -167,7 +167,7 @@ void parse_json(const char *json_str)
     {
         printf(" Missing or invalid fields\n");
     }
-
+    esp_restart();
     cJSON_Delete(root);
 }
 // }

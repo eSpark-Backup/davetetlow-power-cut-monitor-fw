@@ -2,12 +2,12 @@
   "idf.flashType": "UART",
   "idf.portWin": "COM4",
   "idf.customExtraVars": {
-    "IDF_TARGET": "esp32c3"
+    "IDF_TARGET": "esp32"
   },
   "clangd.path": "C:\\Users\\eSpark\\.espressif\\tools\\esp-clang\\esp-18.1.2_20240912\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
-    "--query-driver=C:\\Users\\eSpark\\.espressif\\tools\\riscv32-esp-elf\\esp-14.2.0_20241119\\riscv32-esp-elf\\bin\\riscv32-esp-elf-gcc.exe",
+    "--query-driver=C:\\Users\\eSpark\\.espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gcc.exe",
     "--compile-commands-dir=c:\\Shakaib\\davetetlow-PowerCutMonitor-fw\\Fimware-V1\\PowerCutMonitor-fw\\build"
   ],
   "files.associations": {
@@ -52,7 +52,8 @@
   },
   "idf.monitorPort": "COM4",
   "idf.openOcdConfigs": [
-    "board/esp32c3-ftdi.cfg"
+    "interface/ftdi/esp_ftdi.cfg",
+    "target/esp32.cfg"
   ],
   "C_Cpp.errorSquiggles": "enabled"
 }
