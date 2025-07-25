@@ -19,14 +19,13 @@ int read_adc_value(adc1_channel_t channel)
     return adc_reading / NUM_SAMPLES;
 }
 
-float batteryMonitoring(int *adcc_Value)
+float batteryMonitoring()
 {
     int adc_value;
     float voltages = 0.0;
 
     adc_value = read_adc_value(EXAMPLE_ADC1_CHAN0);
     ESP_LOGI(TAG, "ADC Value: %d", adc_value);
-    *adcc_Value = adc_value;
     voltages = (adc_value / 4095.0) * 3.0;
     ESP_LOGI(TAG, "voltages: %.2f", voltages);
 

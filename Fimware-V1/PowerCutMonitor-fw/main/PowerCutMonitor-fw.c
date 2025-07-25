@@ -39,29 +39,19 @@ void app_main(void)
 
     if (nvs_read_string("wifi_creds", "ssid", &ssid) == ESP_OK)
     {
-        ESP_LOGI(TAG, "Successfully read Wifi Credentials from NVS: %s", ssid);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Failed to read Wifi Credentials from NVS");
-    }
-    if (nvs_read_string("wifi_creds", "pass", &password) == ESP_OK)
-    {
-        ESP_LOGI(TAG, "Successfully read Wifi Credentials from NVS: %s", password);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Failed to read Wifi Credentials from NVS");
-    }
-    if (ssid != NULL && password != NULL)
-    {
-        if (wifi_connect(ssid, password) == ESP_OK)
+        if (nvs_read_string("wifi_creds", "pass", &password) == ESP_OK)
         {
-            ESP_LOGE("WIFI", "Wifi Connected****************");
-        }
-        else
-        {
-            ESP_LOGW("WIFI", "Wifi Not Connected****************");
+            if (ssid && password)
+            {
+                if (wifi_connect(ssid, password) == ESP_OK)
+                {
+                    ESP_LOGE("WIFI", "Wifi Connected****************");
+                }
+                else
+                {
+                    ESP_LOGW("WIFI", "Wifi Not Connected****************");
+                }
+            }
         }
     }
     else
@@ -102,7 +92,6 @@ void app_main(void)
     {
         if (!wifi_connected)
         {
-
             if (!ble_mode)
             {
                 ESP_LOGI(TAG, "Wifi Not Connected BLE Mode is Turning On==================================");
@@ -150,44 +139,28 @@ void app_main(void)
         else
         {
             ESP_LOGI(TAG, "Wifi Connected==================================");
-
             configure_GPIO();
             adc_init();
-
             wakeup_by_power_cutoff_config();
-            float volts;
-            int ad_value = 0;
-
-            volts = batteryMonitoring(&ad_value);
+            float volts = batteryMonitoring();
             ESP_LOGI(TAG, "Volts: %.2f and Battery Percentage: %.0f%%", volts, ((volts - 1.8) / (3.0 - 1.8)) * 100);
 
             int level = gpio_get_level(POWER_GPIO);
-
             ESP_LOGI(TAG, "GPIO level: %d", level);
-
-            // vTaskDelay(pdMS_TO_TICKS(500));
-
-            char *json_packet;
 
             if (level == 1 || volts < 2.04)
             {
                 ESP_LOGI(TAG, "GPIO is %d", level);
 
-                json_packet = create_json_data_1(level, volts);
-                send_report_to_server(json_packet);
-                // vTaskDelay(pdMS_TO_TICKS(500));
+                char *json_packet = create_json_data_1(level, volts);
+                while(send_report_to_server(json_packet) != ESP_OK){};
+                ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% entering sleep mode", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
             }
-
-            else
-            {
-            }
-            ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% entering sleep mode", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
             // esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
-            // esp_light_sleep_start();
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             vTaskDelay(pdMS_TO_TICKS(100));
+            ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d",WAKE_INTERVAL_SEC);
             esp_deep_sleep_start();
-            ESP_LOGI(TAG, "Wake up from sleep mode");
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }

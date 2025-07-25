@@ -1,7 +1,5 @@
 #include "cloud_handling.h"
 
-static const char *TAG = "Cloud_Handling";
-
 uint8_t DEVICE_MAC_ID[6];
 char *create_json_data_1(bool power_cut, float voltages)
 {
@@ -29,7 +27,6 @@ char *create_json_data_1(bool power_cut, float voltages)
 char *create_json_data_2()
 {
     static char json_data[256];
-    static uint8_t base_mac[6];
     char mac_address[24];
     esp_read_mac(DEVICE_MAC_ID, ESP_MAC_WIFI_STA);
     snprintf(mac_address, sizeof(mac_address), "ESP_%02X:%02X:%02X:%02X:%02X:%02X", DEVICE_MAC_ID[0], DEVICE_MAC_ID[1], DEVICE_MAC_ID[2], DEVICE_MAC_ID[3], DEVICE_MAC_ID[4], DEVICE_MAC_ID[5]);
@@ -48,11 +45,8 @@ esp_err_t send_report_to_server(char *json_data)
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
-
     esp_http_client_set_header(client, "Content-Type", "application/json");
-
     esp_http_client_set_post_field(client, json_data, strlen(json_data));
-
     esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK)
     {

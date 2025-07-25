@@ -9,7 +9,6 @@ uint8_t ble_addr_type;
 
 #define MAX_JSON_LEN 512
 
-static char json_buffer[MAX_JSON_LEN];
 static int json_index = 0;
 
 void ble_app_advertise(void);
