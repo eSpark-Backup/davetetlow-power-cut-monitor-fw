@@ -20,6 +20,8 @@
 extern const struct ble_gatt_svc_def gatt_svcs[];
 extern volatile bool wifi_connected;
 
+#define MAX_WIFI_CONNECT_TRIES 10
+
 void ble_app_advertise(void);
 esp_err_t wifi_connect(const char *ssid, const char *password);
 void parse_json(const char *json_str);

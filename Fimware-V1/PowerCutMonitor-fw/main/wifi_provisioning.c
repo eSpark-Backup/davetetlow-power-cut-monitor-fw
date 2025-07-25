@@ -24,6 +24,7 @@ volatile bool wifi_connected = false;
 
 static EventGroupHandle_t wifi_event_group;
 static bool stop_reconnect = false;
+static uint8_t wifi_connect_tries = 0;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
@@ -92,27 +93,31 @@ esp_err_t wifi_connect(const char *ssid, const char *password)
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI("WIFI", "Connecting to %s...", ssid);
-
-    // Wait until connected (timeout 10 seconds)
-    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT,
-                                           pdFALSE, pdTRUE, pdMS_TO_TICKS(10000));
-
-    if (bits & WIFI_CONNECTED_BIT)
+    for (wifi_connect_tries = 0; wifi_connect_tries < MAX_WIFI_CONNECT_TRIES; ++wifi_connect_tries)
     {
-        ESP_LOGI("WIFI", "Connected successfully.");
-        return ESP_OK;
+        ESP_LOGI("WIFI", "Connecting to %s... (try %d)", ssid, wifi_connect_tries + 1);
+
+        EventBits_t bits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT,
+                                               pdFALSE, pdTRUE, pdMS_TO_TICKS(1000));
+
+        if (bits & WIFI_CONNECTED_BIT)
+        {
+            ESP_LOGI("WIFI", "Connected successfully.");
+            return ESP_OK;
+        }
+        else
+        {
+            ESP_LOGW("WIFI", "Connection attempt %d failed.", wifi_connect_tries + 1);
+        }
     }
-    else
-    {
-        ESP_LOGE("WIFI", "Failed to connect to Wi-Fi within timeout.");
-        stop_reconnect = true;
-        esp_wifi_disconnect();
-        esp_wifi_stop();
-        vEventGroupDelete(wifi_event_group);
-        esp_wifi_deinit();
-        return ESP_FAIL;
-    }
+
+    ESP_LOGE("WIFI", "Failed to connect after %d tries.", MAX_WIFI_CONNECT_TRIES);
+    stop_reconnect = true;
+    esp_wifi_disconnect();
+    esp_wifi_stop();
+    vEventGroupDelete(wifi_event_group);
+    esp_wifi_deinit();
+    return ESP_FAIL;
 }
 
 void parse_json(const char *json_str)
@@ -166,6 +171,7 @@ void parse_json(const char *json_str)
     {
         printf(" Missing or invalid fields\n");
     }
+    ESP_LOGI("WIFI", "Restarting ESP32.....");
     esp_restart();
     cJSON_Delete(root);
 }

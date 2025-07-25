@@ -123,17 +123,6 @@ void app_main(void)
                 nimble_port_freertos_init(host_task);
                 ble_mode = true;
                 vTaskDelay(pdMS_TO_TICKS(1000));
-                uint8_t addr[6];
-                int rc = ble_hs_id_infer_auto(0, addr);
-                if (rc != 0)
-                {
-                    ESP_LOGE(TAG, "Failed to infer BLE MAC address, error code: %d", rc);
-                }
-                else
-                {
-                    ESP_LOGI(TAG, "BLE MAC Address: %02X:%02X:%02X:%02X:%02X:%02X",
-                             addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-                }
             }
         }
         else
@@ -159,7 +148,7 @@ void app_main(void)
             // esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             vTaskDelay(pdMS_TO_TICKS(100));
-            ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d",WAKE_INTERVAL_SEC);
+            ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d seconds", WAKE_INTERVAL_SEC/(1000*1000));
             esp_deep_sleep_start();
         }
         vTaskDelay(pdMS_TO_TICKS(100));
