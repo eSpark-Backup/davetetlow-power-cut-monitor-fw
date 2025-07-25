@@ -19,6 +19,7 @@ Power Cutoff Detection: Wakes up from sleep on GPIO power cutoff.
 Deep Sleep: Enters deep sleep for 30 minutes to conserve power after each cycle. Also awake on power cutoff.
 
 Cloud Reporting: Sends battery data (if less than 20% false else true) and power cutoff detection (power cutoff = true else false) including device mac in JSON format to a server.
+```{"device_id":"ESP_34:CD:B0:85:8C:AC","data":{"cutoff_detection":false,"low_battery_indication":true}}```
 
 ## Wifi-Provisioning:
 
