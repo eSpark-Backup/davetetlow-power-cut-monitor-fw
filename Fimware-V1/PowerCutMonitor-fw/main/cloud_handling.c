@@ -19,7 +19,7 @@ char *create_json_data_1(bool power_cut, float voltages)
 
     snprintf(json_data, sizeof(json_data),
              "{\"device_id\":\"%s\", \"data\": {\"cutoff_detection\":%s, \"low_battery_indication\":%s}}",
-             mac_str, power_cut ? "true" : "false", low_battery ? "true" : "false");
+             mac_str, power_cut ? "false" : "true", low_battery ? "true" : "false");
 
     return json_data;
 }

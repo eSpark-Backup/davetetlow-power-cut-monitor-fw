@@ -9,23 +9,74 @@
 
 static char *TAG = "Main";
 
-#define POWER_GPIO 5
+#define POWER_GPIO GPIO_NUM_5
 
-static void configure_GPIO(void)
-{
-    // ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
-    /* Set the GPIO as a push/pull input */
-    gpio_reset_pin(POWER_GPIO);
-    gpio_set_direction(POWER_GPIO, GPIO_MODE_INPUT);
+// Print the wakeup reason for debugging
+static void print_wakeup_reason(void) {
+    esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    switch (wakeup_reason) {
+        case ESP_SLEEP_WAKEUP_EXT0:
+            ESP_LOGI(TAG, "Wakeup caused by EXT0 (GPIO)");
+            break;
+        case ESP_SLEEP_WAKEUP_TIMER:
+            ESP_LOGI(TAG, "Wakeup caused by timer");
+            break;
+        case ESP_SLEEP_WAKEUP_GPIO:
+            ESP_LOGI(TAG, "Wakeup caused by GPIO (esp_deep_sleep_enable_gpio_wakeup)");
+            break;
+        case ESP_SLEEP_WAKEUP_UNDEFINED:
+            ESP_LOGI(TAG, "Wakeup not from deep sleep");
+            break;
+        default:
+            ESP_LOGI(TAG, "Wakeup cause unknown: %d", wakeup_reason);
+            break;
+    }
 }
+
+
+// static void configure_GPIO(void)
+// {
+//     // ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
+//     /* Set the GPIO as a push/pull input */
+//     gpio_reset_pin(POWER_GPIO);
+//     gpio_set_direction(POWER_GPIO, GPIO_MODE_INPUT);
+// }
 
 void wakeup_by_power_cutoff_config()
 {
-    esp_sleep_enable_gpio_wakeup();
-    gpio_wakeup_enable(POWER_GPIO, GPIO_INTR_HIGH_LEVEL);
-    esp_rom_gpio_pad_select_gpio(POWER_GPIO);
-    gpio_pullup_dis(POWER_GPIO);
-    gpio_pulldown_en(POWER_GPIO);
+
+    print_wakeup_reason();
+
+    esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
+
+    gpio_config_t io_conf = {
+        .pin_bit_mask = 1ULL << POWER_GPIO,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,    // Keep pin HIGH when button not pressed
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+
+    if (!esp_sleep_is_valid_wakeup_gpio(POWER_GPIO)) {
+        ESP_LOGE(TAG, "GPIO %d is not a valid RTC GPIO for deep sleep wakeup", POWER_GPIO);
+        return;
+    }
+    else{
+        ESP_LOGI(TAG, "GPIO %d is a valid RTC GPIO for deep sleep wakeup", POWER_GPIO);
+    }
+
+    esp_err_t err = esp_deep_sleep_enable_gpio_wakeup((1ULL << POWER_GPIO), ESP_GPIO_WAKEUP_GPIO_LOW); // Wake on LOW
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to enable EXT0 wakeup: %s", esp_err_to_name(err));
+        return;
+    }
+    else{
+        ESP_LOGI(TAG, "EXT0 wakeup enabled on GPIO %d", POWER_GPIO);
+    }
+
+    
 }
 
 void app_main(void)
@@ -128,7 +179,7 @@ void app_main(void)
         else
         {
             ESP_LOGI(TAG, "Wifi Connected==================================");
-            configure_GPIO();
+            // configure_GPIO();
             adc_init();
             wakeup_by_power_cutoff_config();
             float volts = batteryMonitoring();
@@ -137,7 +188,7 @@ void app_main(void)
             int level = gpio_get_level(POWER_GPIO);
             ESP_LOGI(TAG, "GPIO level: %d", level);
 
-            if (level == 1 || volts < 2.04)
+            if (level == 0 || volts < 2.04)
             {
                 ESP_LOGI(TAG, "GPIO is %d", level);
 
@@ -148,7 +199,7 @@ void app_main(void)
             // esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             vTaskDelay(pdMS_TO_TICKS(100));
-            ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d seconds", WAKE_INTERVAL_SEC/(1000*1000));
+            ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
             esp_deep_sleep_start();
         }
         vTaskDelay(pdMS_TO_TICKS(100));
