@@ -216,7 +216,7 @@ void app_main(void)
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             vTaskDelay(pdMS_TO_TICKS(100));
             ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
-            // esp_deep_sleep_start();
+            esp_deep_sleep_start();
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
