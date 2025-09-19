@@ -3,10 +3,10 @@ idf_component_register(SRCS "PowerCutMonitor-fw.c" "monitor_battery.c" "wifi_pro
                     REQUIRES
                         bt 
                         driver
+                        esp_adc
                         nvs_flash
                         esp_http_client
                         esp_wifi
                         json
-                    #     esp_hw_support
-                    #     driver    
                     )
+

@@ -1,8 +1,22 @@
 #include "monitor_battery.h"
 static const char *TAG = "Battery Monitoring";
 
+// void configure_gpios(void)
+// {
+//     // Configure output pins
+//     gpio_config_t io_conf_out = {
+//         .pin_bit_mask = (1ULL << GPIO_OUTPUT),
+//         .mode = GPIO_MODE_OUTPUT,
+//         .pull_up_en = 0,
+//         .pull_down_en = 0,
+//         .intr_type = GPIO_INTR_DISABLE,
+//     };
+//     gpio_config(&io_conf_out);
+// }
+
 void adc_init()
 {
+    
     adc1_config_width(EXAMPLE_ADC_BIT_WIDTH);
     adc1_config_channel_atten(EXAMPLE_ADC1_CHAN0, EXAMPLE_ADC_ATTEN);
 }

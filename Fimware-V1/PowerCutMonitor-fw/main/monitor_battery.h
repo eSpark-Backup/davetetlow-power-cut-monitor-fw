@@ -8,11 +8,12 @@
 #include "driver/adc.h"
 
 
-#define EXAMPLE_ADC1_CHAN0 ADC_CHANNEL_4       // GPIO4 (ADC1_CH4)
+#define EXAMPLE_ADC1_CHAN0 ADC1_CHANNEL_4       // GPIO4 (ADC1_CH4)
 #define EXAMPLE_ADC_ATTEN ADC_ATTEN_DB_6       // ADC_ATTEN_DB_11 // Attenuation for higher voltage range
 #define EXAMPLE_ADC_BIT_WIDTH ADC_WIDTH_BIT_12 // 12-bit resolution
 #define NUM_SAMPLES 150
 #define WAKE_INTERVAL_SEC 30*60*1000*1000 // wake up timer of 30 minutes
+// #define GPIO_OUTPUT GPIO_NUM_7 // | ((1ULL << GPIO_NUM_7)) Add gpio to assign output mode
 // #define WAKE_INTERVAL_SEC 6000000 // wake up timer of 6 seconds for testing
 
 

@@ -10,6 +10,21 @@
 static char *TAG = "Main";
 
 #define POWER_GPIO GPIO_NUM_5
+#define STATUS_RED GPIO_NUM_10
+#define ADC_ENABLE GPIO_NUM_7
+
+void configure_gpios(void)
+{
+    // Configure output pins
+    gpio_config_t io_conf_out = {
+        .pin_bit_mask = (1ULL << ADC_ENABLE) | (1ULL << STATUS_RED),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = 0,
+        .pull_down_en = 0,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    gpio_config(&io_conf_out);
+}
 
 // Print the wakeup reason for debugging
 static void print_wakeup_reason(void) {
@@ -82,7 +97,9 @@ void wakeup_by_power_cutoff_config()
 void app_main(void)
 {
     bool ble_mode = false;
-
+    configure_gpios();
+    gpio_set_level(ADC_ENABLE, 1);
+    gpio_set_level(STATUS_RED, 1);
     ESP_ERROR_CHECK(nvs_init());
 
     char *ssid = NULL;
@@ -179,7 +196,6 @@ void app_main(void)
         else
         {
             ESP_LOGI(TAG, "Wifi Connected==================================");
-            // configure_GPIO();
             adc_init();
             wakeup_by_power_cutoff_config();
             float volts = batteryMonitoring();
@@ -196,12 +212,13 @@ void app_main(void)
                 while(send_report_to_server(json_packet) != ESP_OK){};
                 ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% entering sleep mode", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
             }
-            // esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
+            esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             vTaskDelay(pdMS_TO_TICKS(100));
             ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
-            esp_deep_sleep_start();
+            // esp_deep_sleep_start();
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
+
