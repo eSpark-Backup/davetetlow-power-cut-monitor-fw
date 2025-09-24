@@ -2,22 +2,25 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_sleep.h"
+#include "status_led.h"
 #include "monitor_battery.h"
 #include "cloud_handling.h"
 #include "nvs_store_retrieve.h"
 #include "wifi_provisioning.h"
 
+
 static char *TAG = "Main";
 
 #define POWER_GPIO GPIO_NUM_5
-#define STATUS_RED GPIO_NUM_10
+
+
 #define ADC_ENABLE GPIO_NUM_7
 
 void configure_gpios(void)
 {
     // Configure output pins
     gpio_config_t io_conf_out = {
-        .pin_bit_mask = (1ULL << ADC_ENABLE) | (1ULL << STATUS_RED),
+        .pin_bit_mask = (1ULL << ADC_ENABLE),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = 0,
         .pull_down_en = 0,
@@ -94,12 +97,14 @@ void wakeup_by_power_cutoff_config()
     
 }
 
+
 void app_main(void)
 {
+    // to initialize led status logic
+    status_led_init();
     bool ble_mode = false;
     configure_gpios();
     gpio_set_level(ADC_ENABLE, 1);
-    gpio_set_level(STATUS_RED, 1);
     ESP_ERROR_CHECK(nvs_init());
 
     char *ssid = NULL;
@@ -111,13 +116,20 @@ void app_main(void)
         {
             if (ssid && password)
             {
+                // Default: assume not connected yet
+                
+
                 if (wifi_connect(ssid, password) == ESP_OK)
                 {
-                    ESP_LOGE("WIFI", "Wifi Connected****************");
+                    ESP_LOGI("WIFI", "Wifi Connected****************");
+                    ESP_LOGE(TAG, "LED STATE: LED_STATE_WIFI_CONNECTED");
+                    status_led_set_state(LED_STATE_WIFI_CONNECTED);
                 }
                 else
                 {
                     ESP_LOGW("WIFI", "Wifi Not Connected****************");
+                    ESP_LOGE(TAG, "LED STATE: LED_STATE_WIFI_NOT_CONNECTED");
+                    status_led_set_state(LED_STATE_WIFI_NOT_CONNECTED);
                 }
             }
         }
@@ -125,6 +137,7 @@ void app_main(void)
     else
     {
         ESP_LOGI(TAG, "Wifi Credentials Not Found==================================");
+
 
         nimble_port_init();
 
@@ -160,6 +173,7 @@ void app_main(void)
     {
         if (!wifi_connected)
         {
+            
             if (!ble_mode)
             {
                 ESP_LOGI(TAG, "Wifi Not Connected BLE Mode is Turning On==================================");
@@ -194,29 +208,52 @@ void app_main(void)
             }
         }
         else
-        {
+        {   
+            // show WiFi connected
+           
+
             ESP_LOGI(TAG, "Wifi Connected==================================");
             adc_init();
             wakeup_by_power_cutoff_config();
             float volts = batteryMonitoring();
             ESP_LOGI(TAG, "Volts: %.2f and Battery Percentage: %.0f%%", volts, ((volts - 1.8) / (3.0 - 1.8)) * 100);
 
+            //  Battery state indication
+            if (volts < 2.04)
+            {   
+                ESP_LOGE(TAG, "LED STATE: LED_STATE_BATTERY_LOW");
+                status_led_set_state(LED_STATE_BATTERY_LOW);
+            }
+            else
+            {
+                ESP_LOGE(TAG, "LED STATE: LED_STATE_BATTERY_OK");
+                status_led_set_state(LED_STATE_BATTERY_OK);
+                vTaskDelay(pdMS_TO_TICKS(500));
+            }
+
             int level = gpio_get_level(POWER_GPIO);
             ESP_LOGI(TAG, "GPIO level: %d", level);
 
             if (level == 0 || volts < 2.04)
             {
+                
                 ESP_LOGI(TAG, "GPIO is %d", level);
 
                 char *json_packet = create_json_data_1(level, volts);
-                while(send_report_to_server(json_packet) != ESP_OK){};
-                ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% entering sleep mode", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
-            }
+                while(send_report_to_server(json_packet) != ESP_OK)
+                {
+                    ESP_LOGE(TAG, "LED STATE: LED_STATE_TELEMETRY_FAIL");
+                    status_led_set_state(LED_STATE_TELEMETRY_FAIL);
+                }
+
+                ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% ", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
+            }else{
             esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
-            vTaskDelay(pdMS_TO_TICKS(100));
             ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
+            vTaskDelay(pdMS_TO_TICKS(500));
             esp_deep_sleep_start();
+            }
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }

@@ -41,7 +41,9 @@ esp_err_t send_report_to_server(char *json_data)
 {
     esp_http_client_config_t config = {
         .url = SERVER_URL,
-        .method = HTTP_METHOD_POST
+        .method = HTTP_METHOD_POST,
+        .skip_cert_common_name_check = true,  // disables CN/SAN check
+        .cert_pem = NULL, 
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);

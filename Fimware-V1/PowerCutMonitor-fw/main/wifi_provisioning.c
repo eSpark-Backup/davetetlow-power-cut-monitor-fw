@@ -1,6 +1,7 @@
 #include "wifi_provisioning.h"
 #include "nvs_store_retrieve.h"
 #include "cloud_handling.h"
+#include "status_led.h"
 
 #include <freertos/event_groups.h>
 
@@ -37,7 +38,9 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
         if (!stop_reconnect)
-        {
+        { 
+            ESP_LOGE(TAG, "LED STATE: LED_STATE_WIFI_NOT_CONNECTED");
+            status_led_set_state(LED_STATE_WIFI_NOT_CONNECTED);
             ESP_LOGW("WIFI", "Disconnected. Reconnecting...");
             esp_wifi_connect(); // auto-reconnect
         }
@@ -75,8 +78,6 @@ esp_err_t wifi_connect(const char *ssid, const char *password)
         sta_netif = esp_netif_create_default_wifi_sta();
     }
 
-    // ESP_ERROR_CHECK(esp_event_loop_create_default());
-    // esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
