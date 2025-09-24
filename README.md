@@ -29,14 +29,16 @@ Data packet should be sent to provide wifi credentials in below format:
 
 ## LED Status Indication
 
-Two LEDs (Red[GPIO_NUM_10] & Green[GPIO_NUM_6]) are used to implement Status Indication as following:
+Two LEDs (Red **GPIO_NUM_10** & Green **GPIO_NUM_6**) are used to implement status indication as follows:
 
-System State	LED Behavior
-Battery Low  ->	Red & Green blink alternately  – device does not sleep.
-Battery OK   ->	Red LED blinks once.
-Wi-Fi Connected ->	Green LED ON.
-Wi-Fi Not Connected ->	Red LED blinks every 1s.
-Telemetry Fail ->	Green LED blinks 5 times quickly, then pause.
-Idle ->	Both LEDs OFF.
+| System State       | LED Behavior                                           |
+|--------------------|--------------------------------------------------------|
+| Battery Low        | Red & Green blink alternately – device does not sleep. |
+| Battery OK         | Red LED blinks once.                                   |
+| Wi-Fi Connected    | Green LED ON.                                          |
+| Wi-Fi Not Connected| Red LED blinks every 1s.                               |
+| Telemetry Fail     | Green LED blinks 5 times quickly, then pause.          |
+| Idle               | Both LEDs OFF.                                         |
+
 
 
