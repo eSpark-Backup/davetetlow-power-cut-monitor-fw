@@ -248,7 +248,7 @@ void app_main(void)
 
                 ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% ", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
             }else{
-            esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 1);
+            esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 0);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
             vTaskDelay(pdMS_TO_TICKS(500));
