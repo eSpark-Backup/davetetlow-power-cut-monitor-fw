@@ -6,7 +6,7 @@ char *create_json_data_1(bool power_cut, float voltages)
     bool low_battery;
     static char json_data[256];
 
-    if (voltages < 2.04)
+    if (voltages < 7.5)
         low_battery = true;
     else
         low_battery = false;

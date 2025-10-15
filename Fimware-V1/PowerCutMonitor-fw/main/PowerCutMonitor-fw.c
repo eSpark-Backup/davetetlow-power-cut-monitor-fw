@@ -219,7 +219,7 @@ void app_main(void)
             ESP_LOGI(TAG, "Volts: %.2f and Battery Percentage: %.0f%%", volts, ((volts - 1.8) / (3.0 - 1.8)) * 100);
 
             //  Battery state indication
-            if (volts < 2.04)
+            if (volts < 7.5)
             {   
                 ESP_LOGE(TAG, "LED STATE: LED_STATE_BATTERY_LOW");
                 status_led_set_state(LED_STATE_BATTERY_LOW);
@@ -234,7 +234,7 @@ void app_main(void)
             int level = gpio_get_level(POWER_GPIO);
             ESP_LOGI(TAG, "GPIO level: %d", level);
 
-            if (level == 0 || volts < 2.04)
+            if (level == 0 || volts < 7.5)
             {
                 
                 ESP_LOGI(TAG, "GPIO is %d", level);

@@ -40,7 +40,8 @@ float batteryMonitoring()
 
     adc_value = read_adc_value(EXAMPLE_ADC1_CHAN0);
     ESP_LOGI(TAG, "ADC Value: %d", adc_value);
-    voltages = (adc_value / 4095.0) * 3.0;
+    voltages = (adc_value / 4095.0) * 3.5;
+    voltages = voltages * 3.1;       // external Attenuation 
     ESP_LOGI(TAG, "voltages: %.2f", voltages);
 
     return voltages;
