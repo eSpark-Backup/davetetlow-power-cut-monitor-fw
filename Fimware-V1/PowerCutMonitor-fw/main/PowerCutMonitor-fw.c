@@ -248,6 +248,12 @@ void app_main(void)
 
                 ESP_LOGI(TAG, "GPIO is %d, and battery percentage is %.0f%% ", level, ((volts - 1.8) / (3.0 - 1.8)) * 100);
             }else{
+                char *json_packet = create_json_data_1(level, volts);
+                while(send_report_to_server(json_packet) != ESP_OK)
+                {
+                    ESP_LOGE(TAG, "LED STATE: LED_STATE_TELEMETRY_FAIL");
+                    status_led_set_state(LED_STATE_TELEMETRY_FAIL);
+                }
             esp_deep_sleep_enable_gpio_wakeup(1 << POWER_GPIO, 0);
             esp_sleep_enable_timer_wakeup(WAKE_INTERVAL_SEC);
             ESP_LOGI(TAG, "Going to sleep!, will wakeup after %d minutes", WAKE_INTERVAL_SEC/(1000*1000));
